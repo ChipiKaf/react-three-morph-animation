@@ -55,8 +55,16 @@ const useParticles = (model, bufferGeometry) => {
 
       positions.current = updatedPositions;
 
+      const sizesArray = new Float32Array(newMaxCount)
+
+      for (let i = 0; i < newMaxCount; i++){
+        sizesArray[i] = Math.random();
+      }
+
       bufferGeometry.current.setAttribute('position', positions.current[index.current])
       bufferGeometry.current.setAttribute('aPositionTarget', positions.current[3])
+      bufferGeometry.current.setAttribute('aSize', new THREE.BufferAttribute(sizesArray, 1))
+
       setMaxCount(newMaxCount);
       console.log(newMaxCount);
     }

@@ -13,12 +13,14 @@ const PIXEL_RATIO = Math.min(window.devicePixelRatio, 2);
 
 const ParticlesMaterial = shaderMaterial(
   {
-    uSize: 0.2,
+    uSize: 0.4,
     uResolution: new THREE.Vector2(
       window.innerWidth * PIXEL_RATIO,
       window.innerHeight * PIXEL_RATIO
     ),
-    uProgress: 0
+    uColorA: new THREE.Color("#ff7300"),
+    uColorB: new THREE.Color("#0091ff"),
+    uProgress: 0,
   },
   vertexShader,
   fragmentShader
@@ -34,46 +36,58 @@ const Experience = () => {
     dracoLoader.setDecoderPath("./draco/");
     loader.setDRACOLoader(dracoLoader);
   });
-  const { morph } = useParticles(model, bufferGeometry)
+  const { morph } = useParticles(model, bufferGeometry);
 
   const { gl } = useThree();
 
-  const { clearColor, uProgress, particleIndex } = useControls({
-    clearColor: "#160920",
-    uProgress: {
-        value: 0, 
-        min: 0,   
-        max: 1,   
-        step: 0.001
+  const { clearColor, uProgress, particleIndex, uColorA, uColorB } =
+    useControls({
+      clearColor: "#160920",
+      uProgress: {
+        value: 0,
+        min: 0,
+        max: 1,
+        step: 0.001,
       },
-      "Morph": buttonGroup({
-        "Face": () => { morph(1, particlesMaterial.current) },
-        "Sphere": () => { morph(2, particlesMaterial.current) },
-        "Text": () => { morph(3, particlesMaterial.current) },
-
-      })
-  });
-
-
-  useEffect(() => {
-    console.log(particleIndex)
-  }, [particleIndex])
+      uColorA: "#ff7300",
+      uColorB: "#0091ff",
+      Morph: buttonGroup({
+        Face: () => {
+          morph(1, particlesMaterial.current);
+        },
+        Sphere: () => {
+          morph(2, particlesMaterial.current);
+        },
+        Text: () => {
+          morph(3, particlesMaterial.current);
+        },
+      }),
+    });
 
   // Initialize
   useEffect(() => {
     gl.setClearColor("#160920");
     const handleResize = () => {
-        particlesMaterial.current.uniforms.uResolution.value.set(
-          window.innerWidth * PIXEL_RATIO,
-          window.innerHeight * PIXEL_RATIO
-        );
-      };
-  
-      window.addEventListener("resize", handleResize);
-      handleResize();
-      return () => window.removeEventListener("resize", handleResize);
-}, []);
+      particlesMaterial.current.uniforms.uResolution.value.set(
+        window.innerWidth * PIXEL_RATIO,
+        window.innerHeight * PIXEL_RATIO
+      );
+    };
 
+    window.addEventListener("resize", handleResize);
+    handleResize();
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
+
+  // Change Color A
+  useEffect(() => {
+    particlesMaterial.current.uniforms.uColorA.value.set(uColorA);
+  }, [uColorA]);
+
+  // Change Color B
+  useEffect(() => {
+    particlesMaterial.current.uniforms.uColorB.value.set(uColorB);
+  }, [uColorB]);
 
   // Change color control
   useEffect(() => {
@@ -81,18 +95,16 @@ const Experience = () => {
   }, [clearColor]);
 
   // uProgress control
-    useEffect(() => {
-        if (particlesMaterial.current) {
-            console.log(uProgress)
-            particlesMaterial.current.uniforms.uProgress.value = uProgress
-        }
-    }, [uProgress])  
-
+  useEffect(() => {
+    if (particlesMaterial.current) {
+      particlesMaterial.current.uniforms.uProgress.value = uProgress;
+    }
+  }, [uProgress]);
 
   return (
     <>
       <OrbitControls makeDefault />
-      <points>
+      <points frustumCulled={false}>
         <bufferGeometry ref={bufferGeometry} />
         <particlesMaterial
           ref={particlesMaterial}
