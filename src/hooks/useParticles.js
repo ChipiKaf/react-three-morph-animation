@@ -1,10 +1,26 @@
 import { useState, useRef, useEffect, useMemo } from "react";
 import * as THREE from 'three';
+import gsap from 'gsap'
 
 const useParticles = (model, bufferGeometry) => {
   const positions = useRef([]);
-  const geometry = useRef(null)
+  const index = useRef(0);
   const [maxCount, setMaxCount] = useState(0);
+
+  const morph = (newIndex, material) => {
+    // update attributes
+    bufferGeometry.current.attributes.position = positions.current[index.current]
+    bufferGeometry.current.attributes.aPositionTarget = positions.current[newIndex]
+
+    // animate progress
+    gsap.fromTo(
+      material.uniforms.uProgress, { value: 0 }, { value: 1, duration: 3, ease: 'linear' }
+    )
+
+    // save index
+
+    index.current = newIndex
+  }
 
   useEffect(() => {
     if (model?.scene?.children) {
@@ -39,7 +55,7 @@ const useParticles = (model, bufferGeometry) => {
 
       positions.current = updatedPositions;
 
-      bufferGeometry.current.setAttribute('position', positions.current[1])
+      bufferGeometry.current.setAttribute('position', positions.current[index.current])
       bufferGeometry.current.setAttribute('aPositionTarget', positions.current[3])
       setMaxCount(newMaxCount);
       console.log(newMaxCount);
@@ -48,10 +64,11 @@ const useParticles = (model, bufferGeometry) => {
 
   return useMemo(
     () => ({
-      positions,
       maxCount,
+      morph,
+      positions,
     }),
-    [positions, maxCount]
+    [positions, maxCount, morph]
   );
 };
 

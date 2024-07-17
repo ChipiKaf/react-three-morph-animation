@@ -2,7 +2,7 @@ import { OrbitControls, shaderMaterial } from "@react-three/drei";
 import vertexShader from "./shaders/particles/vertex.glsl";
 import fragmentShader from "./shaders/particles/fragment.glsl";
 import * as THREE from "three";
-import { useControls } from "leva";
+import { useControls, buttonGroup } from "leva";
 import { extend, useFrame, useLoader, useThree } from "@react-three/fiber";
 import { useEffect, useRef } from "react";
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader";
@@ -34,20 +34,30 @@ const Experience = () => {
     dracoLoader.setDecoderPath("./draco/");
     loader.setDRACOLoader(dracoLoader);
   });
-  const particles = useParticles(model, bufferGeometry)
+  const { morph } = useParticles(model, bufferGeometry)
 
   const { gl } = useThree();
 
-  const { clearColor, uProgress } = useControls({
+  const { clearColor, uProgress, particleIndex } = useControls({
     clearColor: "#160920",
     uProgress: {
         value: 0, 
         min: 0,   
         max: 1,   
         step: 0.001
-      }
+      },
+      "Morph": buttonGroup({
+        "Face": () => { morph(1, particlesMaterial.current) },
+        "Sphere": () => { morph(2, particlesMaterial.current) },
+        "Text": () => { morph(3, particlesMaterial.current) },
+
+      })
   });
 
+
+  useEffect(() => {
+    console.log(particleIndex)
+  }, [particleIndex])
 
   // Initialize
   useEffect(() => {
